@@ -101,25 +101,36 @@ activateModuleLSPD()
 
 testKernelSU()
 {
-	if [[ $(ksud -V 2>&1 | grep "not found" | wc -c) -eq 0 ]]; then #KSU installed
-    	if [[ $(pm list packages | grep $PKGNAME | wc -c) -eq 0 ]]; then #PixelXpert NOT installed yet
-    		ui_print ''
-    		ui_print '*******************************'
-    		ui_print 'KernelSU binaries found!'
-    		ui_print ''
-    		ui_print '                CAUTION!:'
-    		ui_print 'Before installation, you MUST disable'
-    		ui_print '"Unmount modules by default"'
-    		ui_print 'Otherwise, your device will fall into BOOTLOOP!'
-    		ui_print ''
-    		ui_print 'Do you wish to continue?'
-    		ui_print 'Volume Up: Continue'
-    		ui_print 'Volume Down: Abort'
-    		if [[ "$(getevent -l | grep -m 1 KEY_VOLUME)" == *"VOLUMEDOWN"* ]]; then
-    			abort 'Installation cancelled'
-    		fi;
-    	fi;
-    fi;
+    if [[ $(ksud -V 2>&1 | grep "not found" | wc -c) -eq 0 ]]; then #KSU installed
+        if [[ $(pm list packages | grep $PKGNAME | wc -c) -eq 0 ]]; then #PixelXpert NOT installed yet
+            ui_print ''
+            ui_print '*******************************'
+            ui_print 'KernelSU binaries found!'
+            ui_print ''
+            ui_print '        CAUTION!:      '
+            ui_print 'Before installation, you MUST disable'
+            ui_print '"Unmount modules by default"'
+            ui_print 'Otherwise, your device will fall into BOOTLOOP!'
+            ui_print ''
+            ui_print 'Do you wish to continue?'
+            ui_print 'Volume Up: Continue'
+            ui_print 'Volume Down: Abort'
+
+            # Wait for volume key input
+            echo "Waiting for volume key input..."
+            
+            # Check for Volume Down
+            if getevent -l -c 1 /dev/input/eventX | grep -q "KEY_VOLUMEDOWN"; then
+                abort 'Installation cancelled'
+            fi
+            
+            # Check for Volume Up
+            if getevent -l -c 1 /dev/input/eventX | grep -q "KEY_VOLUMEUP"; then
+                echo "Continuing installation..."
+                # Continue with installation
+            fi
+        fi
+    fi
 }
 
 testKernelSU
